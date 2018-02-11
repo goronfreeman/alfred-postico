@@ -17,3 +17,4 @@ Special thanks to [Phill Ayers](https://github.com/payers1) for the inspiration 
 alfred-postico uses these libraries:
 
 * [alfred-workflow-ruby](https://github.com/joetannenbaum/alfred-workflow-ruby) by [Joe Tannenbaum](https://github.com/joetannenbaum)
+* [sqlite3-ruby](https://github.com/sparklemotion/sqlite3-ruby) by [Sparkle Motion](https://github.com/sparklemotion)
