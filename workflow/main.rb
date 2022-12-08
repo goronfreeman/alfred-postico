@@ -1,4 +1,5 @@
 require 'sqlite3'
+require 'json'
 require_relative 'lib/alfred-workflow-ruby/alfred-3_workflow'
 
 module AlfredPostico
@@ -11,10 +12,21 @@ module AlfredPostico
       db.results_as_hash = true
 
       @workflow = Alfred3::Workflow.new
-      @connections = db.execute <<~SQL
-        SELECT ZUSER, ZPORT, ZDATABASE, ZNICKNAME, ZUUID
-        FROM ZPGEFAVORITE
-      SQL
+      basedir = "#{ENV['HOME']}/Library/Containers/at.eggerapps.Postico/Data/Library/Application Support/Postico/Local Library/"
+      @connections = Dir.entries(basedir).reject { |d| d =~ /^\./ }.map do |dir|
+        propfile = basedir + dir + '/properties.json'
+        if File.exists?(propfile)
+          properties = JSON.load(File.read(propfile))
+          {
+            'ZUSER' => properties.dig('connection', 'postgres', 'user'),
+            'ZHOST' => properties.dig('connection', 'postgres', 'host'),
+            'ZPORT' => properties.dig('connection', 'postgres', 'port'),
+            'ZDATABASE' => properties.dig('connection', 'postgres', 'database'),
+            'ZNICKNAME' => properties.dig('displayName'),
+            'ZUUID' => properties.dig('uuid')
+          }
+        end
+      end.compact
     end
 
     def open
@@ -28,7 +40,7 @@ module AlfredPostico
       port = ":#{connection['ZPORT']}" unless connection['ZPORT'].nil?
       db   = connection['ZDATABASE']
 
-      "postgresql://#{user}#{host}#{port}/#{db}"
+      "postico://#{user}#{host}#{port}/#{db}"
     end
 
     def output_json
